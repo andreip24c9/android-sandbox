@@ -52,4 +52,4 @@ fun PreviewWellnessTaskListLight() {
     }
 }
 
-internal fun getPreviewSandboxItems() = List(30) { SandboxItem(it, "Item ${it + 1}", false) }
+internal fun getPreviewSandboxItems() = List(30) { SandboxItem("$it", "Item ${it + 1}", false) }

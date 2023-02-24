@@ -36,13 +36,30 @@ class SandboxViewModel @Inject constructor(
         searchItems(_uiState.value.searchQuery, false)
     }
 
-    override fun onItemCheckChange(task: SandboxItem, checked: Boolean) {
-        _uiState.value.sandboxItems.find { it.id == task.id }?.let { it.checked = checked }
+    override fun onItemCheckChange(sandboxItem: SandboxItem, isChecked: Boolean) {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isLoading = true)
+            repository.checkSandboxItem(sandboxItem.id, isChecked)?.let { updatedItem ->
+                _uiState.value.sandboxItems.find { it.id == updatedItem.id }
+                    ?.apply { checked = updatedItem.checked }
+            } ?: run {
+                // todo show error dialog
+            }
+            _uiState.value = _uiState.value.copy(isLoading = false)
+        }
     }
 
-    override fun onItemCloseClick(task: SandboxItem) {
-        _uiState.value =
-            _uiState.value.copy(sandboxItems = _uiState.value.sandboxItems.filterNot { it == task })
+    override fun onItemCloseClick(sandboxItem: SandboxItem) {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isLoading = true)
+            repository.deleteSandboxItem(sandboxItem.id)?.let { deletedItem ->
+                _uiState.value =
+                    _uiState.value.copy(sandboxItems = _uiState.value.sandboxItems.filterNot { it == deletedItem })
+            } ?: run {
+                // todo handle error
+            }
+            _uiState.value = _uiState.value.copy(isLoading = false)
+        }
     }
 
     override fun onClearClick() {
@@ -58,12 +75,4 @@ class SandboxViewModel @Inject constructor(
             _uiState.value = _uiState.value.copy(isLoading = false, sandboxItems = result)
         }
     }
-
-//    private suspend fun searchItemRequest(query: String): List<SandboxItem> {
-//        delay(1000) // simulates network request
-//        return getSandboxItems()
-//            .takeIf { query.isNotEmpty() }
-//            ?.filter { it.label.contains(query, ignoreCase = true) }
-//            ?: getSandboxItems()
-//    }
 }

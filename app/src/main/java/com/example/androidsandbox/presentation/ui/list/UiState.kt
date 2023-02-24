@@ -11,8 +11,8 @@ data class UiState(
 interface UiEvent {
     fun onSearchQueryChange(newQuery: String)
     fun onSearchClick()
-    fun onItemCheckChange(task: SandboxItem, checked: Boolean)
-    fun onItemCloseClick(task: SandboxItem)
+    fun onItemCheckChange(sandboxItem: SandboxItem, isChecked: Boolean)
+    fun onItemCloseClick(sandboxItem: SandboxItem)
     fun onClearClick()
 }
 

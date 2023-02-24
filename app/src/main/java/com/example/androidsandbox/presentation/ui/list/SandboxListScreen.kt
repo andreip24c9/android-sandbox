@@ -65,10 +65,10 @@ fun PreviewMainScreenLight() {
                 override fun onSearchClick() {
                 }
 
-                override fun onItemCheckChange(task: SandboxItem, checked: Boolean) {
+                override fun onItemCheckChange(sandboxItem: SandboxItem, isChecked: Boolean) {
                 }
 
-                override fun onItemCloseClick(task: SandboxItem) {
+                override fun onItemCloseClick(sandboxItem: SandboxItem) {
                 }
 
                 override fun onClearClick() {
@@ -95,10 +95,10 @@ fun PreviewMainScreenDark() {
                 override fun onSearchClick() {
                 }
 
-                override fun onItemCheckChange(task: SandboxItem, checked: Boolean) {
+                override fun onItemCheckChange(sandboxItem: SandboxItem, isChecked: Boolean) {
                 }
 
-                override fun onItemCloseClick(task: SandboxItem) {
+                override fun onItemCloseClick(sandboxItem: SandboxItem) {
                 }
 
                 override fun onClearClick() {
