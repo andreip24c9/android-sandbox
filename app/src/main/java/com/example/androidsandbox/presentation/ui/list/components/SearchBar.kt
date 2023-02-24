@@ -40,6 +40,7 @@ fun SearchBar(
             modifier = Modifier
                 .padding(horizontal = 16.dp, vertical = 8.dp),
             value = query,
+            maxLines = 1,
             onValueChange = {
                 searchQuery.value = it
                 onValueChange(it)

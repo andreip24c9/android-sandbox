@@ -1,78 +1,111 @@
 package com.example.androidsandbox.presentation.ui.list
 
-import androidx.compose.runtime.mutableStateOf
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.androidsandbox.domain.SandboxItem
 import com.example.androidsandbox.repository.SandboxRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class SandboxViewModel @Inject constructor(
     private val repository: SandboxRepository,
-) : ViewModel(), UiEvent {
-    private val _uiState = mutableStateOf(
-        UiState(searchQuery = "", sandboxItems = listOf(), isLoading = true)
-    )
-    val uiState: UiState
-        get() = _uiState.value
+) : ViewModel() {
 
-    private var job: Job? = null
+    private val searchQuery = MutableStateFlow("")
+    private val sandboxItemList = MutableStateFlow(listOf<SandboxItem>())
+    private val showToolbarLoader = MutableStateFlow(false)
+    private val isLoading = MutableStateFlow(false)
+    val uiStateFlow: StateFlow<SandboxScreenUiState> =
+        combine(
+            searchQuery,
+            sandboxItemList,
+            showToolbarLoader,
+            isLoading
+        ) { query, list, toolbarLoader, screenLoading ->
+            Log.d(
+                "MyLogs",
+                "combine triggered: $query, ${list.size}, toolbarLoader=$toolbarLoader, screenLoader=$screenLoading"
+            )
+            if (screenLoading) {
+                SandboxScreenUiState.Loading
+            } else {
+                SandboxScreenUiState.Data(
+                    searchQuery = query,
+                    sandboxItems = list,
+                    isLoading = toolbarLoader
+                )
+            }
+        }.stateIn(viewModelScope, SharingStarted.Lazily, SandboxScreenUiState.Loading)
+
+    val uiEvents = object : SandboxScreenUiEvents {
+        override fun onSearchQueryChange(newQuery: String) {
+            searchQuery.value = newQuery
+        }
+
+        override fun onSearchClick() {
+            searchItems(searchQuery.value)
+        }
+
+        override fun onItemCheckChange(sandboxItem: SandboxItem, isChecked: Boolean) {
+            checkItem(sandboxItem.id, isChecked)
+        }
+
+        override fun onItemCloseClick(sandboxItem: SandboxItem) {
+            deleteItem(sandboxItem.id)
+        }
+
+        override fun onClearClick() {
+            searchQuery.value = ""
+            searchItems(searchQuery.value)
+        }
+    }
 
     init {
-        searchItems("", false)
-    }
-
-    override fun onSearchQueryChange(newQuery: String) {
-        _uiState.value = _uiState.value.copy(searchQuery = newQuery)
-        searchItems(_uiState.value.searchQuery, true)
-    }
-
-    override fun onSearchClick() {
-        searchItems(_uiState.value.searchQuery, false)
-    }
-
-    override fun onItemCheckChange(sandboxItem: SandboxItem, isChecked: Boolean) {
         viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(isLoading = true)
-            repository.checkSandboxItem(sandboxItem.id, isChecked)?.let { updatedItem ->
-                _uiState.value.sandboxItems.find { it.id == updatedItem.id }
+            isLoading.value = true
+            sandboxItemList.value = repository.fetchSandboxItems(searchQuery.value)
+            isLoading.value = false
+        }
+    }
+
+    private fun searchItems(query: String, debounce: Boolean = false) {
+        viewModelScope.launch {
+            delay(if (debounce) 500 else 0)
+            showToolbarLoader.value = true
+            sandboxItemList.value = repository.fetchSandboxItems(query)
+            showToolbarLoader.value = false
+        }
+    }
+
+    private fun checkItem(itemId: String, isChecked: Boolean) {
+        viewModelScope.launch {
+            showToolbarLoader.value = true
+            repository.checkSandboxItem(itemId, isChecked)?.let { updatedItem ->
+                sandboxItemList.value.find { it.id == itemId }
                     ?.apply { checked = updatedItem.checked }
             } ?: run {
-                // todo show error dialog
+                //     todo why does this return null?
             }
-            _uiState.value = _uiState.value.copy(isLoading = false)
+            showToolbarLoader.value = false
         }
     }
 
-    override fun onItemCloseClick(sandboxItem: SandboxItem) {
+    private fun deleteItem(itemId: String) {
         viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(isLoading = true)
-            repository.deleteSandboxItem(sandboxItem.id)?.let { deletedItem ->
-                _uiState.value =
-                    _uiState.value.copy(sandboxItems = _uiState.value.sandboxItems.filterNot { it == deletedItem })
+            Log.d("MyLogs", "Fire item remove id: $itemId")
+            showToolbarLoader.value = true
+            repository.deleteSandboxItem(itemId)?.let { deletedItem ->
+                Log.d("MyLogs", "received item to remove id: ${deletedItem.id}")
+                sandboxItemList.value = sandboxItemList.value.filterNot { it.id == deletedItem.id }
             } ?: run {
-                // todo handle error
+                //    todo why null??
             }
-            _uiState.value = _uiState.value.copy(isLoading = false)
-        }
-    }
-
-    override fun onClearClick() {
-        searchItems("", false)
-    }
-
-    private fun searchItems(query: String, debounce: Boolean) {
-        job?.cancel()
-        job = viewModelScope.launch {
-            delay(if (debounce) 500 else 0)
-            _uiState.value = _uiState.value.copy(isLoading = true, searchQuery = query)
-            val result = repository.fetchSandboxItems(query)
-            _uiState.value = _uiState.value.copy(isLoading = false, sandboxItems = result)
+            showToolbarLoader.value = false
         }
     }
 }

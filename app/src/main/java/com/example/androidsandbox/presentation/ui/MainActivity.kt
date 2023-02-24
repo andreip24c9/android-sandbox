@@ -4,6 +4,8 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import com.example.androidsandbox.presentation.helper.LifecycleLogger
 import com.example.androidsandbox.presentation.helper.LifecycleLoggerImpl
 import com.example.androidsandbox.presentation.helper.MyLazyDelegate
@@ -20,15 +22,15 @@ class MainActivity : ComponentActivity(), LifecycleLogger by LifecycleLoggerImpl
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         registerLifecycleOwner(this)
-
-        val viewModel by viewModels<SandboxViewModel>()
-//        val wellnessUiState by viewModel.wellnessUiState
         setContent {
             AndroidSandboxTheme {
+                val viewModel by viewModels<SandboxViewModel>()
+                val uiState by viewModel.uiStateFlow.collectAsState()
+                val uiEvents = viewModel.uiEvents
 
                 SandboxListScreen(
-                    uiState = viewModel.uiState,
-                    uiEvent = viewModel
+                    uiState = uiState,
+                    uiEvents = uiEvents
                 )
             }
         }
