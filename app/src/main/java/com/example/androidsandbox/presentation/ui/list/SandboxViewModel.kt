@@ -4,18 +4,28 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.androidsandbox.domain.SandboxItem
+import com.example.androidsandbox.repository.SandboxRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class SandboxViewModel : ViewModel(), UiEvent {
+@HiltViewModel
+class SandboxViewModel @Inject constructor(
+    private val repository: SandboxRepository,
+) : ViewModel(), UiEvent {
     private val _uiState = mutableStateOf(
-        UiState(searchQuery = "", sandboxItems = getSandboxItems(), isLoading = false)
+        UiState(searchQuery = "", sandboxItems = listOf(), isLoading = true)
     )
     val uiState: UiState
         get() = _uiState.value
 
     private var job: Job? = null
+
+    init {
+        searchItems("", false)
+    }
 
     override fun onSearchQueryChange(newQuery: String) {
         _uiState.value = _uiState.value.copy(searchQuery = newQuery)
@@ -44,18 +54,16 @@ class SandboxViewModel : ViewModel(), UiEvent {
         job = viewModelScope.launch {
             delay(if (debounce) 500 else 0)
             _uiState.value = _uiState.value.copy(isLoading = true, searchQuery = query)
-            val result = searchItemRequest(query)
+            val result = repository.fetchSandboxItems(query)
             _uiState.value = _uiState.value.copy(isLoading = false, sandboxItems = result)
         }
     }
 
-    private suspend fun searchItemRequest(query: String): List<SandboxItem> {
-        delay(1000) // simulates network request
-        return getSandboxItems()
-            .takeIf { query.isNotEmpty() }
-            ?.filter { it.label.contains(query, ignoreCase = true) }
-            ?: getSandboxItems()
-    }
+//    private suspend fun searchItemRequest(query: String): List<SandboxItem> {
+//        delay(1000) // simulates network request
+//        return getSandboxItems()
+//            .takeIf { query.isNotEmpty() }
+//            ?.filter { it.label.contains(query, ignoreCase = true) }
+//            ?: getSandboxItems()
+//    }
 }
-
-private fun getSandboxItems() = List(30) { SandboxItem(it, "Item ${it + 1}", false) }

@@ -8,13 +8,13 @@
         android:fullBackupContent="@xml/backup_rules"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
+        android:name=".SandboxApp"
         android:supportsRtl="true"
         android:theme="@style/Theme.AndroidSandbox"
         tools:targetApi="31">
         <activity
             android:name=".presentation.ui.MainActivity"
             android:exported="true"
-            android:label="@string/app_name"
             android:windowSoftInputMode="adjustResize"
             android:theme="@style/Theme.AndroidSandbox">
             <intent-filter>

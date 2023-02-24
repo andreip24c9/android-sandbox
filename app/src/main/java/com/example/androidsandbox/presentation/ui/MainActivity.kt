@@ -10,7 +10,9 @@ import com.example.androidsandbox.presentation.helper.MyLazyDelegate
 import com.example.androidsandbox.presentation.ui.list.SandboxListScreen
 import com.example.androidsandbox.presentation.ui.list.SandboxViewModel
 import com.example.androidsandbox.presentation.ui.theme.AndroidSandboxTheme
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity(), LifecycleLogger by LifecycleLoggerImpl() {
 
     val lazyObj by MyLazyDelegate { "Lazy value" }
