@@ -18,29 +18,26 @@ class SandboxViewModel @Inject constructor(
 
     private val searchQuery = MutableStateFlow("")
     private val sandboxItemList = MutableStateFlow(listOf<SandboxItem>())
-    private val showToolbarLoader = MutableStateFlow(false)
-    private val isLoading = MutableStateFlow(false)
-    val uiStateFlow: StateFlow<SandboxScreenUiState> =
-        combine(
-            searchQuery,
-            sandboxItemList,
-            showToolbarLoader,
-            isLoading
-        ) { query, list, toolbarLoader, screenLoading ->
-            Log.d(
-                "MyLogs",
-                "combine triggered: $query, ${list.size}, toolbarLoader=$toolbarLoader, screenLoader=$screenLoading"
+    private val isToolbarLoading = MutableStateFlow(false)
+    private val isScreenLoading = MutableStateFlow(true)
+
+
+//    private val _uiState: MutableStateFlow<SandboxScreenUiState> =
+//        MutableStateFlow(SandboxScreenUiState.Default)
+    //    val uiState : StateFlow<SandboxScreenUiState> = _uiState.asStateFlow()
+
+    val uiState = combine(searchQuery, sandboxItemList, isToolbarLoading, isScreenLoading)
+    { query, list, toolbarLoader, screenLoading ->
+        if (screenLoading) {
+            SandboxScreenUiState.Loading
+        } else {
+            SandboxScreenUiState.Data(
+                searchQuery = query,
+                sandboxItems = list,
+                isLoading = toolbarLoader
             )
-            if (screenLoading) {
-                SandboxScreenUiState.Loading
-            } else {
-                SandboxScreenUiState.Data(
-                    searchQuery = query,
-                    sandboxItems = list,
-                    isLoading = toolbarLoader
-                )
-            }
-        }.stateIn(viewModelScope, SharingStarted.Lazily, SandboxScreenUiState.Loading)
+        }
+    }.stateIn(viewModelScope, SharingStarted.Lazily, SandboxScreenUiState.Default)
 
     val uiEvents = object : SandboxScreenUiEvents {
         override fun onSearchQueryChange(newQuery: String) {
@@ -67,45 +64,45 @@ class SandboxViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            isLoading.value = true
+            isScreenLoading.value = true
             sandboxItemList.value = repository.fetchSandboxItems(searchQuery.value)
-            isLoading.value = false
+            isScreenLoading.value = false
         }
     }
 
     private fun searchItems(query: String, debounce: Boolean = false) {
         viewModelScope.launch {
             delay(if (debounce) 500 else 0)
-            showToolbarLoader.value = true
+            isToolbarLoading.value = true
             sandboxItemList.value = repository.fetchSandboxItems(query)
-            showToolbarLoader.value = false
+            isToolbarLoading.value = false
         }
     }
 
     private fun checkItem(itemId: String, isChecked: Boolean) {
         viewModelScope.launch {
-            showToolbarLoader.value = true
+            isToolbarLoading.value = true
             repository.checkSandboxItem(itemId, isChecked)?.let { updatedItem ->
                 sandboxItemList.value.find { it.id == itemId }
                     ?.apply { checked = updatedItem.checked }
             } ?: run {
                 //     todo why does this return null?
             }
-            showToolbarLoader.value = false
+            isToolbarLoading.value = false
         }
     }
 
     private fun deleteItem(itemId: String) {
         viewModelScope.launch {
             Log.d("MyLogs", "Fire item remove id: $itemId")
-            showToolbarLoader.value = true
+            isToolbarLoading.value = true
             repository.deleteSandboxItem(itemId)?.let { deletedItem ->
                 Log.d("MyLogs", "received item to remove id: ${deletedItem.id}")
                 sandboxItemList.value = sandboxItemList.value.filterNot { it.id == deletedItem.id }
             } ?: run {
                 //    todo why null??
             }
-            showToolbarLoader.value = false
+            isToolbarLoading.value = false
         }
     }
 }

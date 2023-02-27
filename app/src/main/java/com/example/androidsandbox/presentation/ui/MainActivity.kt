@@ -25,7 +25,7 @@ class MainActivity : ComponentActivity(), LifecycleLogger by LifecycleLoggerImpl
         setContent {
             AndroidSandboxTheme {
                 val viewModel by viewModels<SandboxViewModel>()
-                val uiState by viewModel.uiStateFlow.collectAsState()
+                val uiState by viewModel.uiState.collectAsState()
                 val uiEvents = viewModel.uiEvents
 
                 SandboxListScreen(

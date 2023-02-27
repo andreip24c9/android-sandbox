@@ -63,7 +63,7 @@ fun SandboxListScreen(
                 is SandboxScreenUiState.Error -> {
                     SandboxFullPageError(
                         modifier = Modifier.fillMaxSize(),
-                        errorLabel = uiState.error
+                        errorLabel = uiState.errorLabel
                     )
                 }
             }

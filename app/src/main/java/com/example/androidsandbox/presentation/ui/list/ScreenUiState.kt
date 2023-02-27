@@ -4,12 +4,16 @@ import com.example.androidsandbox.domain.SandboxItem
 
 sealed class SandboxScreenUiState {
     object Loading : SandboxScreenUiState()
-    data class Error(val error: String) : SandboxScreenUiState()
+    data class Error(val errorLabel: String) : SandboxScreenUiState()
     data class Data(
         val searchQuery: String,
         val sandboxItems: List<SandboxItem>,
         val isLoading: Boolean
     ) : SandboxScreenUiState()
+
+    companion object {
+        val Default = Loading
+    }
 }
 
 interface SandboxScreenUiEvents {
