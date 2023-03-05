@@ -1,8 +1,10 @@
-package com.example.androidsandbox.presentation.ui.list.components
+package com.example.androidsandbox.presentation.ui.list.widgets
 
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
@@ -18,19 +20,24 @@ import androidx.compose.ui.unit.dp
 import com.example.androidsandbox.presentation.ui.theme.AndroidSandboxTheme
 
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun SandboxListItem(
     modifier: Modifier = Modifier,
     taskName: String,
     checked: Boolean = false,
+    onClick: () -> Unit,
+    onLongClick: () -> Unit,
     onCheckChange: (Boolean) -> Unit,
     onClose: () -> Unit,
 ) {
     Row(
         modifier = modifier
             .background(color = MaterialTheme.colorScheme.background)
-            .clickable { onCheckChange(!checked) }
+            .combinedClickable(
+                onClick = onClick,
+                onLongClick = onLongClick
+            )
             .padding(horizontal = 16.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -61,7 +68,12 @@ fun SandboxListItem(
 @Composable
 fun PreviewWellnessTaskDark() {
     AndroidSandboxTheme {
-        SandboxListItem(taskName = "Item label", onClose = {}, onCheckChange = {})
+        SandboxListItem(
+            taskName = "Item label",
+            onClose = {},
+            onClick = {},
+            onLongClick = {},
+            onCheckChange = {})
     }
 }
 
@@ -69,7 +81,12 @@ fun PreviewWellnessTaskDark() {
 @Composable
 fun PreviewWellnessTaskLight() {
     AndroidSandboxTheme {
-        SandboxListItem(taskName = "Item label", onClose = {}, onCheckChange = {})
+        SandboxListItem(
+            taskName = "Item label",
+            onClose = {},
+            onClick = {},
+            onLongClick = {},
+            onCheckChange = {})
     }
 }
 

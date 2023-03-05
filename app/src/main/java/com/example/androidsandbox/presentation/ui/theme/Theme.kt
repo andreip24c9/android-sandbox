@@ -52,13 +52,20 @@ fun AndroidSandboxTheme(
         darkTheme -> DarkColorScheme
         else -> LightColorScheme
     }
-    val view = LocalView.current
-    if (!view.isInEditMode) {
-        SideEffect {
-            (view.context as Activity).window.statusBarColor = colorScheme.primary.toArgb()
-            ViewCompat.getWindowInsetsController(view)?.isAppearanceLightStatusBars = darkTheme
-        }
-    }
+
+//    val view = LocalView.current
+//    if (!view.isInEditMode) {
+//        SideEffect {
+//            // Update all of the system bar colors to be transparent, and use
+//            // dark icons if we're in light theme
+//            systemUiController.setSystemBarsColor(
+//                color = toolbarColor,
+//                darkIcons = useDarkIcons
+//            )
+//
+//            // setStatusBarsColor() and setNavigationBarColor() also exist
+//        }
+//    }
 
     MaterialTheme(
         colorScheme = colorScheme,

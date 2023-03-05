@@ -1,4 +1,4 @@
-package com.example.androidsandbox.presentation.ui.list.components
+package com.example.androidsandbox.presentation.ui.list.widgets
 
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -15,17 +15,22 @@ import com.example.androidsandbox.presentation.ui.theme.AndroidSandboxTheme
 fun SandboxList(
     modifier: Modifier = Modifier,
     list: List<SandboxItem>,
-    onTaskCheckChange: (SandboxItem, Boolean) -> Unit,
-    onCloseTask: (SandboxItem) -> Unit
+    onItemClick: (SandboxItem) -> Unit,
+    onItemLongClick: (SandboxItem) -> Unit,
+    onItemCheckChange: (SandboxItem, Boolean) -> Unit,
+    onCloseClick: (SandboxItem) -> Unit
 ) {
     LazyColumn(modifier = modifier) {
-        items(list, key = { task -> task.id }) { task ->
+        items(list, key = { item -> item.id }) { item ->
             SandboxListItem(
                 modifier = Modifier.animateItemPlacement(),
-                taskName = task.label,
-                checked = task.checked,
-                onCheckChange = { checked -> onTaskCheckChange(task, checked) },
-                onClose = { onCloseTask(task) })
+                taskName = item.label,
+                checked = item.checked,
+                onClick = { onItemClick(item) },
+                onLongClick = { onItemLongClick(item) },
+                onCheckChange = { checked -> onItemCheckChange(item, checked) },
+                onClose = { onCloseClick(item) }
+            )
         }
     }
 }
@@ -36,8 +41,10 @@ fun PreviewWellnessTaskListDark() {
     AndroidSandboxTheme {
         SandboxList(
             list = getPreviewSandboxItems(),
-            onCloseTask = {},
-            onTaskCheckChange = { _, _ -> })
+            onCloseClick = {},
+            onItemClick = {},
+            onItemLongClick = {},
+            onItemCheckChange = { _, _ -> })
     }
 }
 
@@ -47,8 +54,10 @@ fun PreviewWellnessTaskListLight() {
     AndroidSandboxTheme {
         SandboxList(
             list = getPreviewSandboxItems(),
-            onCloseTask = {},
-            onTaskCheckChange = { _, _ -> })
+            onCloseClick = {},
+            onItemClick = {},
+            onItemLongClick = {},
+            onItemCheckChange = { _, _ -> })
     }
 }
 

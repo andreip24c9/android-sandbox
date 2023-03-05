@@ -5,24 +5,26 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.LifecycleOwner
 
 interface LifecycleLogger {
-    fun registerLifecycleOwner(owner: LifecycleOwner)
+    fun registerLifecycleOwner(owner: LifecycleOwner, callerName: String?)
 }
 
 class LifecycleLoggerImpl : LifecycleLogger, LifecycleEventObserver {
 
-    override fun registerLifecycleOwner(owner: LifecycleOwner) {
+    private lateinit var callerName: String
+    override fun registerLifecycleOwner(owner: LifecycleOwner, callerName: String?) {
         owner.lifecycle.addObserver(this)
+        this.callerName = callerName ?: "noName"
     }
 
     override fun onStateChanged(source: LifecycleOwner, event: Lifecycle.Event) {
         when (event) {
-            Lifecycle.Event.ON_CREATE -> println("ON_CREATE")
-            Lifecycle.Event.ON_DESTROY -> println("ON_DESTROY")
-            Lifecycle.Event.ON_RESUME -> println("ON_RESUME")
-            Lifecycle.Event.ON_PAUSE -> println("ON_PAUSE")
-            Lifecycle.Event.ON_START -> println("ON_START")
-            Lifecycle.Event.ON_STOP -> println("ON_STOP")
-            Lifecycle.Event.ON_ANY -> println("ON_ANY")
+            Lifecycle.Event.ON_CREATE -> println("$callerName **** ON_CREATE")
+            Lifecycle.Event.ON_DESTROY -> println("$callerName **** ON_DESTROY")
+            Lifecycle.Event.ON_RESUME -> println("$callerName **** ON_RESUME")
+            Lifecycle.Event.ON_PAUSE -> println("$callerName **** ON_PAUSE")
+            Lifecycle.Event.ON_START -> println("$callerName **** ON_START")
+            Lifecycle.Event.ON_STOP -> println("$callerName **** ON_STOP")
+            Lifecycle.Event.ON_ANY -> println("$callerName **** ON_ANY")
         }
     }
 }

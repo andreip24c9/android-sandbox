@@ -11,16 +11,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.androidsandbox.domain.SandboxItem
-import com.example.androidsandbox.presentation.ui.list.components.*
-import com.example.androidsandbox.presentation.ui.list.components.getPreviewSandboxItems
+import com.example.androidsandbox.presentation.ui.list.widgets.*
+import com.example.androidsandbox.presentation.ui.list.widgets.getPreviewSandboxItems
 import com.example.androidsandbox.presentation.ui.theme.AndroidSandboxTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SandboxListScreen(
+fun ListScreen(
     modifier: Modifier = Modifier,
-    uiState: SandboxScreenUiState,
-    uiEvents: SandboxScreenUiEvents,
+    uiState: ListScreenUiState,
+    uiActions: ListScreenUiActions,
 ) {
     Scaffold(
         modifier = modifier,
@@ -29,38 +29,40 @@ fun SandboxListScreen(
                 title = {
                     TitleTextLoader(
                         text = "Sandbox App",
-                        isLoading = (uiState as? SandboxScreenUiState.Data)?.isLoading ?: false
+                        isLoading = (uiState as? ListScreenUiState.Data)?.isLoading ?: false
                     )
                 }
             )
         },
         content = { paddingValues ->
             when (uiState) {
-                is SandboxScreenUiState.Data -> {
+                is ListScreenUiState.Data -> {
                     Log.d("LoadingLogs", "Data state")
                     Column(modifier = Modifier.padding(paddingValues)) {
                         SearchBar(
                             modifier = Modifier.fillMaxWidth(),
                             query = uiState.searchQuery,
-                            onValueChange = { uiEvents.onSearchQueryChange(it) },
-                            onSearchClick = { uiEvents.onSearchClick() },
-                            onClearClick = { uiEvents.onClearClick() })
+                            onValueChange = { uiActions.onSearchQueryChange(it) },
+                            onSearchClick = { uiActions.onSearchClick() },
+                            onClearClick = { uiActions.onClearClick() })
                         SandboxList(
                             list = uiState.sandboxItems,
-                            onTaskCheckChange = { task, isChecked ->
-                                uiEvents.onItemCheckChange(task, isChecked)
+                            onItemClick = { item -> uiActions.onItemClick(item) },
+                            onItemLongClick = { item -> uiActions.onItemLongClick(item) },
+                            onItemCheckChange = { task, isChecked ->
+                                uiActions.onItemCheckChange(task, isChecked)
                             },
-                            onCloseTask = { task -> uiEvents.onItemCloseClick(task) })
+                            onCloseClick = { task -> uiActions.onItemCloseClick(task) })
                     }
                 }
-                SandboxScreenUiState.Loading -> {
+                ListScreenUiState.Loading -> {
                     Log.d("LoadingLogs", "Loading state")
                     SandboxFullPageLoader(
                         modifier = Modifier.fillMaxSize(),
                         loadingLabel = "Loading ..."
                     )
                 }
-                is SandboxScreenUiState.Error -> {
+                is ListScreenUiState.Error -> {
                     SandboxFullPageError(
                         modifier = Modifier.fillMaxSize(),
                         errorLabel = uiState.errorLabel
@@ -75,17 +77,23 @@ fun SandboxListScreen(
 @Composable
 fun PreviewMainScreenLightList() {
     AndroidSandboxTheme {
-        SandboxListScreen(
-            uiState = SandboxScreenUiState.Data(
+        ListScreen(
+            uiState = ListScreenUiState.Data(
                 searchQuery = "testQuery",
                 sandboxItems = getPreviewSandboxItems(),
                 isLoading = true
             ),
-            uiEvents = object : SandboxScreenUiEvents {
+            uiActions = object : ListScreenUiActions {
                 override fun onSearchQueryChange(newQuery: String) {
                 }
 
                 override fun onSearchClick() {
+                }
+
+                override fun onItemClick(sandboxItem: SandboxItem) {
+                }
+
+                override fun onItemLongClick(sandboxItem: SandboxItem) {
                 }
 
                 override fun onItemCheckChange(sandboxItem: SandboxItem, isChecked: Boolean) {
@@ -105,17 +113,23 @@ fun PreviewMainScreenLightList() {
 @Composable
 fun PreviewMainScreenDarkList() {
     AndroidSandboxTheme {
-        SandboxListScreen(
-            uiState = SandboxScreenUiState.Data(
+        ListScreen(
+            uiState = ListScreenUiState.Data(
                 searchQuery = "testQuery",
                 sandboxItems = getPreviewSandboxItems(),
                 isLoading = true
             ),
-            uiEvents = object : SandboxScreenUiEvents {
+            uiActions = object : ListScreenUiActions {
                 override fun onSearchQueryChange(newQuery: String) {
                 }
 
                 override fun onSearchClick() {
+                }
+
+                override fun onItemClick(sandboxItem: SandboxItem) {
+                }
+
+                override fun onItemLongClick(sandboxItem: SandboxItem) {
                 }
 
                 override fun onItemCheckChange(sandboxItem: SandboxItem, isChecked: Boolean) {
@@ -136,13 +150,19 @@ fun PreviewMainScreenDarkList() {
 @Composable
 fun PreviewMainScreenLightLoading() {
     AndroidSandboxTheme {
-        SandboxListScreen(
-            uiState = SandboxScreenUiState.Loading,
-            uiEvents = object : SandboxScreenUiEvents {
+        ListScreen(
+            uiState = ListScreenUiState.Loading,
+            uiActions = object : ListScreenUiActions {
                 override fun onSearchQueryChange(newQuery: String) {
                 }
 
                 override fun onSearchClick() {
+                }
+
+                override fun onItemClick(sandboxItem: SandboxItem) {
+                }
+
+                override fun onItemLongClick(sandboxItem: SandboxItem) {
                 }
 
                 override fun onItemCheckChange(sandboxItem: SandboxItem, isChecked: Boolean) {
@@ -162,13 +182,19 @@ fun PreviewMainScreenLightLoading() {
 @Composable
 fun PreviewMainScreenDarkLoading() {
     AndroidSandboxTheme {
-        SandboxListScreen(
-            uiState = SandboxScreenUiState.Loading,
-            uiEvents = object : SandboxScreenUiEvents {
+        ListScreen(
+            uiState = ListScreenUiState.Loading,
+            uiActions = object : ListScreenUiActions {
                 override fun onSearchQueryChange(newQuery: String) {
                 }
 
                 override fun onSearchClick() {
+                }
+
+                override fun onItemClick(sandboxItem: SandboxItem) {
+                }
+
+                override fun onItemLongClick(sandboxItem: SandboxItem) {
                 }
 
                 override fun onItemCheckChange(sandboxItem: SandboxItem, isChecked: Boolean) {

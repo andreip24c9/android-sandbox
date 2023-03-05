@@ -1,4 +1,4 @@
-package com.example.androidsandbox.presentation.ui.list.components
+package com.example.androidsandbox.presentation.ui.list.widgets
 
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import androidx.compose.foundation.clickable

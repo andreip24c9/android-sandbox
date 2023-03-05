@@ -12,7 +12,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class SandboxViewModel @Inject constructor(
+class ListViewModel @Inject constructor(
     private val repository: SandboxRepository,
 ) : ViewModel() {
 
@@ -29,23 +29,38 @@ class SandboxViewModel @Inject constructor(
     val uiState = combine(searchQuery, sandboxItemList, isToolbarLoading, isScreenLoading)
     { query, list, toolbarLoader, screenLoading ->
         if (screenLoading) {
-            SandboxScreenUiState.Loading
+            ListScreenUiState.Loading
         } else {
-            SandboxScreenUiState.Data(
+            ListScreenUiState.Data(
                 searchQuery = query,
                 sandboxItems = list,
                 isLoading = toolbarLoader
             )
         }
-    }.stateIn(viewModelScope, SharingStarted.Lazily, SandboxScreenUiState.Default)
+    }.stateIn(viewModelScope, SharingStarted.Lazily, ListScreenUiState.Default)
 
-    val uiEvents = object : SandboxScreenUiEvents {
+    private val _uiEvent = MutableSharedFlow<ListUiEvent>()
+    val uiEvent: SharedFlow<ListUiEvent> = _uiEvent.asSharedFlow()
+
+    val uiActions = object : ListScreenUiActions {
         override fun onSearchQueryChange(newQuery: String) {
             searchQuery.value = newQuery
         }
 
         override fun onSearchClick() {
             searchItems(searchQuery.value)
+        }
+
+        override fun onItemClick(sandboxItem: SandboxItem) {
+            viewModelScope.launch {
+                _uiEvent.emit(ListUiEvent.NavigateToDetails(sandboxItem))
+            }
+        }
+
+        override fun onItemLongClick(sandboxItem: SandboxItem) {
+            viewModelScope.launch {
+                _uiEvent.emit(ListUiEvent.ShowToast("Long clicked: ${sandboxItem.label}"))
+            }
         }
 
         override fun onItemCheckChange(sandboxItem: SandboxItem, isChecked: Boolean) {

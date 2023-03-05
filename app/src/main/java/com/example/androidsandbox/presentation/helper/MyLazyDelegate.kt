@@ -13,3 +13,11 @@ class MyLazyDelegate<out T : Any>(private val initialize: () -> T) {
         } else value!!
     }
 }
+
+
+class TestDelegate(private val block : () -> String) {
+    private val value: String? = null
+    operator fun getValue(thisRef: Any?, property: KProperty<*>): String {
+        return block()
+    }
+}
