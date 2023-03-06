@@ -8,26 +8,52 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import com.example.androidsandbox.presentation.ui.details.widgets.SandboxToolbar
+import androidx.compose.ui.unit.dp
+import com.example.androidsandbox.presentation.ui.common.widgets.SandboxToolbar
+import com.example.androidsandbox.presentation.ui.common.widgets.SandboxToolbarWithCheckbox
+import com.example.androidsandbox.presentation.ui.list.widgets.SandboxFullPageError
+import com.example.androidsandbox.presentation.ui.list.widgets.SandboxFullPageLoader
 import com.example.androidsandbox.presentation.ui.theme.AndroidSandboxTheme
 
 @Composable
 fun DetailsScreen(
-    uiState: DetailsScreenUiState.Data,
+    uiState: DetailsScreenUiState,
     uiActions: DetailsScreenUiActions,
 ) {
     Scaffold(topBar = {
-        SandboxToolbar(title = uiState.title, navigationAction = uiActions::onNavigateBackClick)
+        SandboxToolbarWithCheckbox(
+            title = (uiState as? DetailsScreenUiState.Data)?.title ?: "",
+            navigationAction = uiActions::onNavigateBackClick,
+            checkboxEnabled = uiState is DetailsScreenUiState.Data,
+            checked = (uiState as? DetailsScreenUiState.Data)?.checked ?: false,
+            onCheckChange = uiActions::onCheckChange
+        )
     }) { paddingValues ->
         Surface {
-            Box(modifier = Modifier.padding(paddingValues).fillMaxSize()) {
-                Text(
-                    modifier = Modifier.align(Alignment.Center),
-                    text = "Details Page"
-                )
+            Box(
+                modifier = Modifier
+                    .padding(paddingValues)
+                    .fillMaxSize()
+            ) {
+                when (uiState) {
+                    is DetailsScreenUiState.Data -> {
+                        Text(text = uiState.description, modifier = Modifier.padding(16.dp))
+                    }
+                    DetailsScreenUiState.Error -> {
+                        SandboxFullPageError(
+                            modifier = Modifier.fillMaxSize(),
+                            errorLabel = "Error"
+                        )
+                    }
+                    DetailsScreenUiState.Loading -> {
+                        SandboxFullPageLoader(
+                            modifier = Modifier.fillMaxSize(),
+                            loadingLabel = "Loading ..."
+                        )
+                    }
+                }
             }
         }
     }
@@ -38,7 +64,11 @@ fun DetailsScreen(
 private fun previewDetailsScreenLight() {
     AndroidSandboxTheme {
         DetailsScreen(
-            uiState = DetailsScreenUiState.Data(title = "Preview Title", checked = false),
+            uiState = DetailsScreenUiState.Data(
+                title = "Preview Title",
+                description = "Description",
+                checked = false
+            ),
             uiActions = object : DetailsScreenUiActions {
                 override fun onNavigateBackClick() {
 
@@ -56,7 +86,11 @@ private fun previewDetailsScreenLight() {
 private fun previewDetailsScreenDark() {
     AndroidSandboxTheme {
         DetailsScreen(
-            uiState = DetailsScreenUiState.Data(title = "Preview Title", checked = false),
+            uiState = DetailsScreenUiState.Data(
+                title = "Preview Title",
+                description = "Description",
+                checked = false
+            ),
             uiActions = object : DetailsScreenUiActions {
                 override fun onNavigateBackClick() {
 

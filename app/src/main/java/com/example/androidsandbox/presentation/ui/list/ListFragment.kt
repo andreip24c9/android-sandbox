@@ -10,6 +10,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
+import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.findNavController
@@ -55,7 +56,10 @@ class ListFragment : Fragment(), LifecycleLogger by LifecycleLoggerImpl() {
                                 }
 
                                 is ListUiEvent.NavigateToDetails -> {
-                                    findNavController().navigate(R.id.action_listFragment_to_detailsFragment)
+                                    findNavController().navigate(
+                                        R.id.action_listFragment_to_detailsFragment,
+                                        bundleOf("item_id" to uiAction.sandboxItem.id)
+                                    )
                                 }
                             }
                         }

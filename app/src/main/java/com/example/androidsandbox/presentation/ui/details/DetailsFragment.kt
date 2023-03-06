@@ -4,8 +4,10 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.platform.ComposeView
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.navigation.findNavController
 import com.example.androidsandbox.presentation.helper.LifecycleLogger
 import com.example.androidsandbox.presentation.helper.LifecycleLoggerImpl
@@ -28,8 +30,11 @@ class DetailsFragment : Fragment(), LifecycleLogger by LifecycleLoggerImpl() {
         return ComposeView(requireContext()).apply {
             setContent {
                 AndroidSandboxTheme {
+                    val viewModel by viewModels<DetailsViewModel>()
+                    val uiState = viewModel.uiState.collectAsState()
+
                     DetailsScreen(
-                        uiState = DetailsScreenUiState.Data("Test Title", false),
+                        uiState = uiState.value,
                         uiActions = object :DetailsScreenUiActions {
                             override fun onNavigateBackClick() {
                                 findNavController().popBackStack()

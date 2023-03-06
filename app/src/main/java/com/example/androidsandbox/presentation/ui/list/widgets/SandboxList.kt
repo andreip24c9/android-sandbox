@@ -22,9 +22,10 @@ fun SandboxList(
 ) {
     LazyColumn(modifier = modifier) {
         items(list, key = { item -> item.id }) { item ->
-            SandboxListItem(
+            ListItem(
                 modifier = Modifier.animateItemPlacement(),
-                taskName = item.label,
+                itemName = item.label,
+                itemDescription = item.description,
                 checked = item.checked,
                 onClick = { onItemClick(item) },
                 onLongClick = { onItemLongClick(item) },
@@ -61,4 +62,11 @@ fun PreviewWellnessTaskListLight() {
     }
 }
 
-internal fun getPreviewSandboxItems() = List(30) { SandboxItem("$it", "Item ${it + 1}", false) }
+internal fun getPreviewSandboxItems() = List(30) {
+    SandboxItem(
+        "$it",
+        "Item ${it + 1}",
+        "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
+        false
+    )
+}
