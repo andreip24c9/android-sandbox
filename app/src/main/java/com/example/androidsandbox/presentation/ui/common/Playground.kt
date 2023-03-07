@@ -1,24 +1,82 @@
-package com.example.androidsandbox.presentation.ui.list
+@file:OptIn(FlowPreview::class)
 
-import androidx.compose.runtime.collectAsState
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.delay
+package com.example.androidsandbox.presentation.ui.common
+
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
-import kotlin.coroutines.CoroutineContext
 
 val fromThread = "\t ************* from ${Thread.currentThread().name} thread"
 fun fromCoroutine(scope: CoroutineScope) =
     "\t ************* from ${scope.coroutineContext} scope context"
 
+@OptIn(ExperimentalCoroutinesApi::class)
 fun main() {
     println("Main Program Start $fromThread")
 //    collectTimerValue()
 //    restaurantCollector()
-    collectStateFlow()
-    collectSharedFlow()
+//    collectStateFlow()
+//    collectSharedFlow()
+
+
+    runBlocking {
+        launch {
+            sharedFlow
+                .onEach {
+                   logEvent("onEach", it)
+                }
+                .debounce {
+                    when (it) {
+                        is UISearchEvent.SearchClick -> 0L
+                        is UISearchEvent.OnQueryChange -> 750L
+                    }
+                }
+                .distinctUntilChanged()
+                .flatMapLatest {
+                    searchForStuff(it)
+                }
+                .collect {
+                    println(it)
+                }
+//                .collectLatest {
+//                    searchForStuff(it)
+//                }
+        }
+
+        launch {
+            _sharedFlow.emit(UISearchEvent.OnQueryChange("a"))
+            delay(600)
+            _sharedFlow.emit(UISearchEvent.OnQueryChange("ab"))
+            delay(200)
+            _sharedFlow.emit(UISearchEvent.OnQueryChange("abc"))
+            delay(700)
+            _sharedFlow.emit(UISearchEvent.OnQueryChange("abcd"))
+            delay(300)
+            _sharedFlow.emit(UISearchEvent.OnQueryChange("abcde"))
+            delay(750)
+            _sharedFlow.emit(UISearchEvent.SearchClick)
+        }
+    }
 }
+
+private suspend fun searchForStuff(event: UISearchEvent): Flow<String> {
+    println("**** Start search for: ${(event as? UISearchEvent.OnQueryChange)?.newQuery ?: "~"}")
+    delay(1000)
+    logEvent("collect", event)
+    return flowOf("Resulted search from: ${(event as? UISearchEvent.OnQueryChange)?.newQuery ?: "~"}")
+}
+
+private fun logEvent(tag: String, event: UISearchEvent) =
+    println("[${System.currentTimeMillis()}] $tag -> Event: ${event::class.simpleName} ${(event as? UISearchEvent.OnQueryChange)?.newQuery ?: ""}")
+
+
+private val _sharedFlow = MutableSharedFlow<UISearchEvent>()
+val sharedFlow = _sharedFlow.asSharedFlow()
+
+sealed interface UISearchEvent {
+    object SearchClick : UISearchEvent
+    data class OnQueryChange(val newQuery: String) : UISearchEvent
+}
+
 //    runBlocking {
 //        val simpleFlow = simpleFlow()
 //        launch {
@@ -145,17 +203,20 @@ fun restaurantFlow() = flow {
 private val _stateFlow = MutableStateFlow(0)
 val stateFlow = _stateFlow
 
-private val _sharedFlow = MutableSharedFlow<Int>()
-val sharedFlow = _sharedFlow
 
-fun collectStateFlow(): Nothing = runBlocking {
-    stateFlow.collect {
-        print("Collected $it")
-    }
-}
-
-fun collectSharedFlow(): Nothing = runBlocking {
-    sharedFlow.collect {
-        print("Collected $it")
-    }
-}
+//
+//fun collectStateFlow(): Nothing = runBlocking {
+//    stateFlow.collect {
+//        print("Collected $it")
+//    }
+//}
+//
+//fun squareNumber(number: Int) = runBlocking {
+//    _sharedFlow.emit(number * number)
+//}
+//
+//fun collectSharedFlow(): Nothing = runBlocking {
+//    sharedFlow.collect {
+//        print("Collected $it")
+//    }
+//}
