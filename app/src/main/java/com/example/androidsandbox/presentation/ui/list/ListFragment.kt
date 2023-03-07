@@ -38,17 +38,16 @@ class ListFragment : Fragment(), LifecycleLogger by LifecycleLoggerImpl() {
                 AndroidSandboxTheme {
                     val viewModel by viewModels<ListViewModel>()
                     val uiState by viewModel.uiState.collectAsState()
-                    val uiActions = viewModel.uiActions
-//                val uiAction = viewModel.uiAction.collectAsState(Unit)
+                    val uiEvent = viewModel.uiEvent
 
                     ListScreen(
                         uiState = uiState,
-                        uiActions = uiActions
+                        uiActionHandler = viewModel::uiActionHandler
                     )
 
                     val context = LocalContext.current
-                    LaunchedEffect(Unit) {
-                        viewModel.uiEvent.collect { uiAction ->
+                    LaunchedEffect(uiEvent) {
+                        uiEvent.collect { uiAction ->
                             when (uiAction) {
                                 is ListUiEvent.ShowToast -> {
                                     Toast.makeText(context, uiAction.message, Toast.LENGTH_SHORT)

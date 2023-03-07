@@ -6,27 +6,26 @@ import androidx.lifecycle.viewModelScope
 import com.example.androidsandbox.domain.SandboxItem
 import com.example.androidsandbox.repository.SandboxRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+@OptIn(FlowPreview::class)
 @HiltViewModel
 class ListViewModel @Inject constructor(
     private val repository: SandboxRepository,
 ) : ViewModel() {
 
-    private val searchQuery = MutableStateFlow("")
-    private val sandboxItemList = MutableStateFlow(listOf<SandboxItem>())
-    private val isToolbarLoading = MutableStateFlow(false)
-    private val isScreenLoading = MutableStateFlow(true)
+    private val _searchQuery = MutableStateFlow("")
+    private val _sandboxItemList = MutableStateFlow(listOf<SandboxItem>())
+    private val _isToolbarLoading = MutableStateFlow(false)
+    private val _isScreenLoading = MutableStateFlow(true)
+    private val _uiEvent = MutableSharedFlow<ListUiEvent>()
+    private val _searchFlow = MutableSharedFlow<ListScreenUiAction.SearchAction>()
 
-
-//    private val _uiState: MutableStateFlow<SandboxScreenUiState> =
-//        MutableStateFlow(SandboxScreenUiState.Default)
-    //    val uiState : StateFlow<SandboxScreenUiState> = _uiState.asStateFlow()
-
-    val uiState = combine(searchQuery, sandboxItemList, isToolbarLoading, isScreenLoading)
+    val uiEvent: SharedFlow<ListUiEvent> = _uiEvent.asSharedFlow()
+    val uiState = combine(_searchQuery, _sandboxItemList, _isToolbarLoading, _isScreenLoading)
     { query, list, toolbarLoader, screenLoading ->
         if (screenLoading) {
             ListScreenUiState.Loading
@@ -39,85 +38,116 @@ class ListViewModel @Inject constructor(
         }
     }.stateIn(viewModelScope, SharingStarted.Lazily, ListScreenUiState.Default)
 
-    private val _uiEvent = MutableSharedFlow<ListUiEvent>()
-    val uiEvent: SharedFlow<ListUiEvent> = _uiEvent.asSharedFlow()
-
-    val uiActions = object : ListScreenUiActions {
-        override fun onSearchQueryChange(newQuery: String) {
-            searchQuery.value = newQuery
-        }
-
-        override fun onSearchClick() {
-            searchItems(searchQuery.value)
-        }
-
-        override fun onItemClick(sandboxItem: SandboxItem) {
-            viewModelScope.launch {
-                _uiEvent.emit(ListUiEvent.NavigateToDetails(sandboxItem))
-            }
-        }
-
-        override fun onItemLongClick(sandboxItem: SandboxItem) {
-            viewModelScope.launch {
-                _uiEvent.emit(ListUiEvent.ShowToast("Long clicked: ${sandboxItem.label}"))
-            }
-        }
-
-        override fun onItemCheckChange(sandboxItem: SandboxItem, isChecked: Boolean) {
-            checkItem(sandboxItem.id, isChecked)
-        }
-
-        override fun onItemCloseClick(sandboxItem: SandboxItem) {
-            deleteItem(sandboxItem.id)
-        }
-
-        override fun onClearClick() {
-            searchQuery.value = ""
-            searchItems(searchQuery.value)
-        }
-    }
-
     init {
         viewModelScope.launch {
-            isScreenLoading.value = true
-            sandboxItemList.value = repository.fetchSandboxItems(searchQuery.value)
-            isScreenLoading.value = false
+            _searchFlow
+                .onEach { action ->
+                    when (action) {
+                        is ListScreenUiAction.SearchAction.OnSearchQueryChange -> {
+                            _searchQuery.value = action.query
+                        }
+                        ListScreenUiAction.SearchAction.OnClearClick -> {
+                            _searchQuery.value = ""
+                        }
+                        else -> {
+                            // do nothing
+                        }
+                    }
+                    if (action is ListScreenUiAction.SearchAction.OnSearchQueryChange) {
+                        _searchQuery.value = action.query
+                    }
+                }
+                .debounce { action ->
+                    when (action) {
+                        is ListScreenUiAction.SearchAction.OnSearchQueryChange -> 750L
+                        else -> 0L
+                    }
+                }
+                .distinctUntilChanged(areEquivalent = { old, new ->
+                    when(old) {
+                        is ListScreenUiAction.SearchAction.OnSearchQueryChange -> {
+                            if(new is ListScreenUiAction.SearchAction.OnSearchQueryChange) {
+                                old.query == new.query
+                            } else {
+                                old.query == _searchQuery.value
+                            }
+                        }
+                        else -> {
+                            false
+                        }
+                    }
+                })
+                .collectLatest { action ->
+                    when (action) {
+                        is ListScreenUiAction.SearchAction.OnRefresh -> {
+                            _isScreenLoading.value = true
+                        }
+                        else -> {
+                            _isScreenLoading.value = false
+                            _isToolbarLoading.value = true
+                        }
+                    }
+                    val result = repository.fetchSandboxItems(_searchQuery.value)
+                    _isScreenLoading.value = false
+                    _isToolbarLoading.value = false
+                    _sandboxItemList.value = result
+                }
+        }
+
+        viewModelScope.launch {
+            _searchFlow.emit(ListScreenUiAction.SearchAction.OnRefresh)
         }
     }
 
-    private fun searchItems(query: String, debounce: Boolean = false) {
-        viewModelScope.launch {
-            delay(if (debounce) 500 else 0)
-            isToolbarLoading.value = true
-            sandboxItemList.value = repository.fetchSandboxItems(query)
-            isToolbarLoading.value = false
+    fun uiActionHandler(action: ListScreenUiAction) {
+        when (action) {
+            is ListScreenUiAction.SearchAction -> {
+                viewModelScope.launch { _searchFlow.emit(action) }
+            }
+            is ListScreenUiAction.OnItemCheckChange -> {
+                checkItem(action.sandboxItem.id, action.isChecked)
+            }
+            is ListScreenUiAction.OnItemClick -> {
+                viewModelScope.launch {
+                    _uiEvent.emit(ListUiEvent.NavigateToDetails(action.sandboxItem))
+                }
+            }
+            is ListScreenUiAction.OnItemCloseClick -> {
+                deleteItem(action.sandboxItem.id)
+            }
+            is ListScreenUiAction.OnItemLongClick -> {
+                viewModelScope.launch {
+                    _uiEvent.emit(ListUiEvent.ShowToast("Long clicked: ${action.sandboxItem.label}"))
+                }
+            }
         }
     }
 
     private fun checkItem(itemId: String, isChecked: Boolean) {
         viewModelScope.launch {
-            isToolbarLoading.value = true
+            _isToolbarLoading.value = true
             repository.checkSandboxItem(itemId, isChecked)?.let { updatedItem ->
-                sandboxItemList.value.find { it.id == itemId }
+                _sandboxItemList.value.find { it.id == itemId }
                     ?.apply { checked = updatedItem.checked }
             } ?: run {
                 //     todo why does this return null?
             }
-            isToolbarLoading.value = false
+            _isToolbarLoading.value = false
         }
     }
 
     private fun deleteItem(itemId: String) {
         viewModelScope.launch {
             Log.d("MyLogs", "Fire item remove id: $itemId")
-            isToolbarLoading.value = true
+            _isToolbarLoading.value = true
             repository.deleteSandboxItem(itemId)?.let { deletedItem ->
                 Log.d("MyLogs", "received item to remove id: ${deletedItem.id}")
-                sandboxItemList.value = sandboxItemList.value.filterNot { it.id == deletedItem.id }
+                _sandboxItemList.value =
+                    _sandboxItemList.value.filterNot { it.id == deletedItem.id }
             } ?: run {
                 //    todo why null??
             }
-            isToolbarLoading.value = false
+            _isToolbarLoading.value = false
         }
     }
 }

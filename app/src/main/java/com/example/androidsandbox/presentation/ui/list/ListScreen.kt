@@ -20,7 +20,7 @@ import com.example.androidsandbox.presentation.ui.theme.AndroidSandboxTheme
 fun ListScreen(
     modifier: Modifier = Modifier,
     uiState: ListScreenUiState,
-    uiActions: ListScreenUiActions,
+    uiActionHandler: (ListScreenUiAction) -> Unit,
 ) {
     Scaffold(
         modifier = modifier,
@@ -42,17 +42,31 @@ fun ListScreen(
                         SearchBar(
                             modifier = Modifier.fillMaxWidth(),
                             query = uiState.searchQuery,
-                            onValueChange = { uiActions.onSearchQueryChange(it) },
-                            onSearchClick = { uiActions.onSearchClick() },
-                            onClearClick = { uiActions.onClearClick() })
+                            onValueChange = {
+                                uiActionHandler(
+                                    ListScreenUiAction.SearchAction.OnSearchQueryChange(
+                                        it
+                                    )
+                                )
+                            },
+                            onSearchClick = { uiActionHandler(ListScreenUiAction.SearchAction.OnSearchClick) },
+                            onClearClick = { uiActionHandler(ListScreenUiAction.SearchAction.OnClearClick) })
                         SandboxList(
                             list = uiState.sandboxItems,
-                            onItemClick = { item -> uiActions.onItemClick(item) },
-                            onItemLongClick = { item -> uiActions.onItemLongClick(item) },
-                            onItemCheckChange = { task, isChecked ->
-                                uiActions.onItemCheckChange(task, isChecked)
+                            onItemClick = { uiActionHandler(ListScreenUiAction.OnItemClick(it)) },
+                            onItemLongClick = {
+                                uiActionHandler(
+                                    ListScreenUiAction.OnItemLongClick(
+                                        it
+                                    )
+                                )
                             },
-                            onCloseClick = { task -> uiActions.onItemCloseClick(task) })
+                            onItemCheckChange = { item, isChecked ->
+                                uiActionHandler(
+                                    ListScreenUiAction.OnItemCheckChange(item, isChecked)
+                                )
+                            },
+                            onCloseClick = { uiActionHandler(ListScreenUiAction.OnItemCloseClick(it)) })
                     }
                 }
                 ListScreenUiState.Loading -> {
@@ -83,28 +97,7 @@ fun PreviewMainScreenLightList() {
                 sandboxItems = getPreviewSandboxItems(),
                 isLoading = true
             ),
-            uiActions = object : ListScreenUiActions {
-                override fun onSearchQueryChange(newQuery: String) {
-                }
-
-                override fun onSearchClick() {
-                }
-
-                override fun onItemClick(sandboxItem: SandboxItem) {
-                }
-
-                override fun onItemLongClick(sandboxItem: SandboxItem) {
-                }
-
-                override fun onItemCheckChange(sandboxItem: SandboxItem, isChecked: Boolean) {
-                }
-
-                override fun onItemCloseClick(sandboxItem: SandboxItem) {
-                }
-
-                override fun onClearClick() {
-                }
-            }
+            uiActionHandler = {}
         )
     }
 }
@@ -119,28 +112,7 @@ fun PreviewMainScreenDarkList() {
                 sandboxItems = getPreviewSandboxItems(),
                 isLoading = true
             ),
-            uiActions = object : ListScreenUiActions {
-                override fun onSearchQueryChange(newQuery: String) {
-                }
-
-                override fun onSearchClick() {
-                }
-
-                override fun onItemClick(sandboxItem: SandboxItem) {
-                }
-
-                override fun onItemLongClick(sandboxItem: SandboxItem) {
-                }
-
-                override fun onItemCheckChange(sandboxItem: SandboxItem, isChecked: Boolean) {
-                }
-
-                override fun onItemCloseClick(sandboxItem: SandboxItem) {
-                }
-
-                override fun onClearClick() {
-                }
-            }
+            uiActionHandler = {}
         )
     }
 }
@@ -152,28 +124,7 @@ fun PreviewMainScreenLightLoading() {
     AndroidSandboxTheme {
         ListScreen(
             uiState = ListScreenUiState.Loading,
-            uiActions = object : ListScreenUiActions {
-                override fun onSearchQueryChange(newQuery: String) {
-                }
-
-                override fun onSearchClick() {
-                }
-
-                override fun onItemClick(sandboxItem: SandboxItem) {
-                }
-
-                override fun onItemLongClick(sandboxItem: SandboxItem) {
-                }
-
-                override fun onItemCheckChange(sandboxItem: SandboxItem, isChecked: Boolean) {
-                }
-
-                override fun onItemCloseClick(sandboxItem: SandboxItem) {
-                }
-
-                override fun onClearClick() {
-                }
-            }
+            uiActionHandler = {}
         )
     }
 }
@@ -184,28 +135,7 @@ fun PreviewMainScreenDarkLoading() {
     AndroidSandboxTheme {
         ListScreen(
             uiState = ListScreenUiState.Loading,
-            uiActions = object : ListScreenUiActions {
-                override fun onSearchQueryChange(newQuery: String) {
-                }
-
-                override fun onSearchClick() {
-                }
-
-                override fun onItemClick(sandboxItem: SandboxItem) {
-                }
-
-                override fun onItemLongClick(sandboxItem: SandboxItem) {
-                }
-
-                override fun onItemCheckChange(sandboxItem: SandboxItem, isChecked: Boolean) {
-                }
-
-                override fun onItemCloseClick(sandboxItem: SandboxItem) {
-                }
-
-                override fun onClearClick() {
-                }
-            }
+            uiActionHandler = {}
         )
     }
 }
