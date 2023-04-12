@@ -1,6 +1,11 @@
 package com.example.androidsandbox.presentation.ui.list.widgets
 
-import android.content.res.Configuration.UI_MODE_NIGHT_YES
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.animateIntAsState
+import androidx.compose.animation.core.animateSizeAsState
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -18,8 +23,9 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.example.androidsandbox.presentation.ui.common.SandboxCompose
 import com.example.androidsandbox.presentation.ui.theme.AndroidSandboxTheme
 
 
@@ -37,10 +43,13 @@ fun ListItem(
     expanded: Boolean = false
 ) {
     var isExpanded by rememberSaveable { mutableStateOf(expanded) }
+    val color by animateColorAsState(targetValue = if (isExpanded) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.background)
+    val iconSize by animateDpAsState(targetValue = if (isExpanded) 32.dp else 24.dp)
+    val textSize by animateFloatAsState(targetValue = if (isExpanded) 24f else 18f)
 
     Column(
         modifier = modifier
-            .background(color = MaterialTheme.colorScheme.background)
+            .background(color = color)
             .combinedClickable(
                 onClick = onClick, onLongClick = {
                     isExpanded = !isExpanded
@@ -60,6 +69,7 @@ fun ListItem(
                 modifier = Modifier
                     .padding(start = 16.dp)
                     .weight(1f),
+                fontSize = textSize.sp,
                 color = MaterialTheme.colorScheme.onBackground
             )
             Icon(
@@ -68,6 +78,7 @@ fun ListItem(
                 tint = MaterialTheme.colorScheme.onBackground,
                 modifier = Modifier
                     .padding(end = 8.dp)
+                    .size(iconSize)
                     .clickable(
                         interactionSource = remember { MutableInteractionSource() },
                         indication = rememberRipple(bounded = false),
@@ -78,15 +89,17 @@ fun ListItem(
                 imageVector = Icons.Filled.Close,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.onBackground,
-                modifier = Modifier.clickable(
-                    interactionSource = remember { MutableInteractionSource() },
-                    indication = rememberRipple(bounded = false),
-                    onClick = onClose
-                )
+                modifier = Modifier
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = rememberRipple(bounded = false),
+                        onClick = onClose
+                    )
+                    .size(iconSize)
             )
         }
 
-        if (isExpanded) {
+        AnimatedVisibility(visible = isExpanded) {
             Box(
                 modifier = Modifier
                     .padding(top = 16.dp)
@@ -104,33 +117,17 @@ fun ListItem(
     }
 }
 
-@Preview(uiMode = UI_MODE_NIGHT_YES)
+@SandboxCompose.LightDarkModePreview
 @Composable
-fun PreviewWellnessTaskDarkExpanded() {
+fun PreviewItemExpanded() {
     AndroidSandboxTheme {
         PreviewItem(expanded = true)
     }
 }
 
-@Preview
+@SandboxCompose.LightDarkModePreview
 @Composable
-fun PreviewWellnessTaskLightExpanded() {
-    AndroidSandboxTheme {
-        PreviewItem(expanded = true)
-    }
-}
-
-@Preview(uiMode = UI_MODE_NIGHT_YES)
-@Composable
-fun PreviewWellnessTaskDarkCollapsed() {
-    AndroidSandboxTheme {
-        PreviewItem(expanded = false)
-    }
-}
-
-@Preview
-@Composable
-fun PreviewWellnessTaskLightCollapsed() {
+fun PreviewItemCollapsed() {
     AndroidSandboxTheme {
         PreviewItem(expanded = false)
     }

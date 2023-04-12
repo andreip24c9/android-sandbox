@@ -3,6 +3,7 @@ package com.example.androidsandbox.presentation.ui.details
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.androidsandbox.presentation.ui.details.navigation.itemIdArg
 import com.example.androidsandbox.repository.SandboxRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,7 +22,7 @@ class DetailsViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            val itemId: String? = state["item_id"]
+            val itemId: String? = state[itemIdArg]
             itemId?.let { id ->
                 val sandboxItem = repository.getSandboxItem(id)
                 sandboxItem?.let { item ->
@@ -39,5 +40,9 @@ class DetailsViewModel @Inject constructor(
                 _uiState.emit(DetailsScreenUiState.Error)
             }
         }
+    }
+
+    fun onCheckChange(isChecked: Boolean) {
+        // todo impl later
     }
 }

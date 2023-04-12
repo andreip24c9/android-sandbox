@@ -99,28 +99,36 @@ class ListViewModel @Inject constructor(
         }
     }
 
-    fun uiActionHandler(action: ListScreenUiAction) {
-        when (action) {
-            is ListScreenUiAction.SearchAction -> {
-                viewModelScope.launch { _searchFlow.emit(action) }
-            }
-            is ListScreenUiAction.OnItemCheckChange -> {
-                checkItem(action.sandboxItem.id, action.isChecked)
-            }
-            is ListScreenUiAction.OnItemClick -> {
-                viewModelScope.launch {
-                    _uiEvent.emit(ListUiEvent.NavigateToDetails(action.sandboxItem))
-                }
-            }
-            is ListScreenUiAction.OnItemCloseClick -> {
-                deleteItem(action.sandboxItem.id)
-            }
-            is ListScreenUiAction.OnItemLongClick -> {
-                viewModelScope.launch {
-                    _uiEvent.emit(ListUiEvent.ShowToast("Long clicked: ${action.sandboxItem.label}"))
-                }
-            }
+    fun onQueryChange(newQuery: String) {
+        viewModelScope.launch { _searchFlow.emit(ListScreenUiAction.SearchAction.OnSearchQueryChange(newQuery)) }
+    }
+
+    fun onSearchClick() {
+        viewModelScope.launch { _searchFlow.emit(ListScreenUiAction.SearchAction.OnSearchClick) }
+    }
+
+    fun onClearClick() {
+        viewModelScope.launch { _searchFlow.emit(ListScreenUiAction.SearchAction.OnClearClick) }
+    }
+
+    fun onItemClick(sandboxItem: SandboxItem) {
+        viewModelScope.launch {
+            _uiEvent.emit(ListUiEvent.NavigateToDetails(sandboxItem))
         }
+    }
+
+    fun onItemLongClick(sandboxItem: SandboxItem) {
+        viewModelScope.launch {
+            _uiEvent.emit(ListUiEvent.ShowToast("Long clicked: ${sandboxItem.label}"))
+        }
+    }
+
+    fun onItemCheckChange(sandboxItem: SandboxItem, isChecked: Boolean) {
+        checkItem(sandboxItem.id, isChecked)
+    }
+
+    fun onDeleteClick(sandboxItem: SandboxItem) {
+        deleteItem(sandboxItem.id)
     }
 
     private fun checkItem(itemId: String, isChecked: Boolean) {

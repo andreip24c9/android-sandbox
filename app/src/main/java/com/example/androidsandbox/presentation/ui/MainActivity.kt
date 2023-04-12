@@ -1,26 +1,27 @@
 package com.example.androidsandbox.presentation.ui
 
 import android.os.Bundle
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
-import androidx.fragment.app.FragmentActivity
-import com.example.androidsandbox.R
+import androidx.core.view.WindowCompat
 import com.example.androidsandbox.presentation.helper.LifecycleLogger
 import com.example.androidsandbox.presentation.helper.LifecycleLoggerImpl
-import com.example.androidsandbox.presentation.helper.MyLazyDelegate
+import com.example.androidsandbox.presentation.ui.common.navigation.BottomNavigationScreen
+import com.example.androidsandbox.presentation.ui.common.navigation.TabScreen
+import com.example.androidsandbox.presentation.ui.theme.AndroidSandboxTheme
 import dagger.hilt.android.AndroidEntryPoint
+
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity(), LifecycleLogger by LifecycleLoggerImpl() {
-
-    val lazyObj by MyLazyDelegate { "Lazy value" }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         registerLifecycleOwner(this, MainActivity::class.simpleName)
-
-        setContentView(R.layout.main_activity)
+        WindowCompat.setDecorFitsSystemWindows(window, true)
+        setContent {
+            AndroidSandboxTheme {
+                BottomNavigationScreen(*TabScreen.values())
+            }
+        }
     }
 }
-
-
