@@ -17,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.example.androidsandbox.presentation.ui.common.SandboxCompose
 import com.example.androidsandbox.presentation.ui.theme.AndroidSandboxTheme
 
 
@@ -25,7 +26,7 @@ import com.example.androidsandbox.presentation.ui.theme.AndroidSandboxTheme
 fun SandboxToolbar(
     modifier: Modifier = Modifier,
     title: String,
-    navigationAction: () -> Unit
+    navigationAction: (() -> Unit)? = null
 ) {
     TopAppBar(
         modifier = modifier,
@@ -38,30 +39,32 @@ fun SandboxToolbar(
             )
         },
         navigationIcon = {
-            Icon(
-                imageVector = Icons.Filled.ArrowBack,
-                contentDescription = null,
-                modifier = Modifier
-                    .padding(start = 8.dp)
-                    .clickable(
-                        interactionSource = remember { MutableInteractionSource() },
-                        indication = rememberRipple(bounded = false),
-                        onClick = { navigationAction() })
-            )
+            if (navigationAction != null) {
+                Icon(
+                    imageVector = Icons.Filled.ArrowBack,
+                    contentDescription = null,
+                    modifier = Modifier
+                        .padding(start = 8.dp)
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = rememberRipple(bounded = false),
+                            onClick = { navigationAction() })
+                )
+            }
         })
 }
 
 @Composable
-@Preview
-private fun previewSandboxToolbarLight() {
+@SandboxCompose.LightDarkModePreview
+private fun previewSandboxToolbar() {
     AndroidSandboxTheme {
-        SandboxToolbar(title = "Toolbar Preview", navigationAction = {})
+        SandboxToolbar(title = "Toolbar Preview")
     }
 }
 
 @Composable
-@Preview(uiMode = UI_MODE_NIGHT_YES)
-private fun previewSandboxToolbarDark() {
+@SandboxCompose.LightDarkModePreview
+private fun previewSandboxToolbarWithBack() {
     AndroidSandboxTheme {
         SandboxToolbar(title = "Toolbar Preview", navigationAction = {})
     }
